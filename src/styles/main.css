@@ -1,0 +1,367 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #f8fafc;
+    color: #1e293b;
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+/* Main application container */
+#app {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    background: white;
+    min-height: 100vh;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+/* Header section */
+.app-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 20px 0;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.app-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1e40af;
+    margin-bottom: 8px;
+}
+
+.app-subtitle {
+    font-size: 1.1rem;
+    color: #64748b;
+    font-weight: 400;
+}
+
+/* Task input section */
+.input-section {
+    margin-bottom: 40px;
+    padding: 20px;
+    background: #f1f5f9;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.input-container {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* Form elements */
+#task-title {
+    flex: 1;
+    min-width: 250px;
+    padding: 12px 16px;
+    border: 2px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 16px;
+    background: white;
+    transition: border-color 0.2s ease;
+}
+
+#task-title:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+#task-day,
+#task-priority {
+    padding: 12px 16px;
+    border: 2px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 16px;
+    background: white;
+    cursor: pointer;
+    min-width: 140px;
+    transition: border-color 0.2s ease;
+}
+
+#task-day:focus,
+#task-priority:focus,
+#task-day:hover,
+#task-priority:hover {
+    border-color: #3b82f6;
+}
+
+#add-task {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+#add-task:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+#add-task:active {
+    transform: translateY(0);
+}
+
+#add-task:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Weekly grid layout */
+.weekly-grid-section {
+    margin-bottom: 40px;
+}
+
+.weekly-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 16px;
+    min-height: 400px;
+}
+
+/* Day columns */
+.day-column {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.day-column:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.day-header {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.day-header h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 4px;
+}
+
+.task-count {
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.task-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Task items */
+.task-item {
+    background: #f8fafc;
+    padding: 12px;
+    border-radius: 8px;
+    border-left: 4px solid #3b82f6;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.task-item:hover {
+    background: #e2e8f0;
+    transform: translateX(2px);
+}
+
+.task-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.task-title {
+    flex: 1;
+}
+
+.task-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.complete-btn,
+.delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
+}
+
+.complete-btn:hover {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.delete-btn:hover {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+/* Priority indicators */
+.task-item.priority-high {
+    border-left-color: #ef4444;
+}
+
+.task-item.priority-medium {
+    border-left-color: #f59e0b;
+}
+
+.task-item.priority-low {
+    border-left-color: #10b981;
+}
+
+/* Completed tasks */
+.task-item.completed {
+    background: #f0fdf4;
+    color: #166534;
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+/* Footer section */
+.app-footer {
+    text-align: center;
+    padding: 20px 0;
+    border-top: 1px solid #e2e8f0;
+    margin-top: 40px;
+}
+
+.stats-container {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+
+.stats-container span {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+/* Empty state for task lists */
+.task-list:empty::after {
+    content: "No tasks yet";
+    color: #94a3b8;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+    font-size: 0.9rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    #app {
+        padding: 16px;
+    }
+    
+    .app-header h1 {
+        font-size: 2rem;
+    }
+    
+    .input-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    #task-title,
+    #task-day,
+    #task-priority,
+    #add-task {
+        width: 100%;
+        min-width: unset;
+    }
+    
+    .weekly-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    #app {
+        padding: 12px;
+    }
+    
+    .app-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .app-subtitle {
+        font-size: 1rem;
+    }
+    
+    .weekly-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .day-column {
+        padding: 12px;
+    }
+    
+    .stats-container {
+        flex-direction: column;
+        gap: 16px;
+    }
+}
+
+/* Utility classes */
+.hidden {
+    display: none;
+}
+
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(-10px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
