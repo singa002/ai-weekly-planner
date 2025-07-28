@@ -2,6 +2,9 @@
 let tasks = [];
 let nextTaskId = 1;
 
+// Storage key for localStorage
+const STORAGE_KEY = 'weeklyPlannerTasks';
+
 // DOM element references
 const taskTitleInput = document.getElementById('task-title');
 const taskDaySelect = document.getElementById('task-day');
@@ -54,8 +57,8 @@ function addTask() {
     updateStatistics();
     clearForm();
 
-    //Auto save after adding a task
-    saveTaskstoStorage();
+    // Auto save after adding a task
+    saveTasksToStorage();
 
     console.log('Task added:', newTask);
 }
@@ -143,8 +146,8 @@ function toggleTaskCompletion(taskId) {
     
     updateStatistics();
 
-    //Auto save after toggling a task
-    saveTaskstoStorage();
+    // Auto save after toggling a task
+    saveTasksToStorage();
 }
 
 /**
@@ -173,8 +176,8 @@ function deleteTask(taskId) {
     updateStatistics();
     updateDayTaskCount(taskDay);
 
-    //Auto save after deleting a task
-    saveTaskstoStorage();
+    // Auto save after deleting a task
+    saveTasksToStorage();
 }
 
 /**
@@ -252,73 +255,47 @@ function initializeEventListeners() {
 }
 
 /**
- * Initializes the application
+ * Saves tasks to localStorage
  */
-function initializeApp() {
-    console.log('Weekly Planner initialized');
-
-    //Load saved tasks before setting up the UI
-    const hasStoredTasks = loadTasksFromStorage();
-    
-    initializeEventListeners();
-
-    //Display loaded tasks or start fresh
-    if (hasStoredTasks) {
-        displayAllTasks();
-    } else {
-        updateStatistics();
-        updateAllDayTaskCounts();
-    }
-
-    
-    
-}
-
-// Start the application when DOM is ready
-document.addEventListener('DOMContentLoaded', initializeApp);
-
-//storage key for local storage
-const STORAGE_KEY = 'weeklyPlannerTasks'
-
-/**
- * Saves tasks to local storage
- */
-function saveTaskstoStorage() {
-    try{
+function saveTasksToStorage() {
+    try {
         const tasksJSON = JSON.stringify(tasks);
         localStorage.setItem(STORAGE_KEY, tasksJSON);
-        console.log('Tasks saved to local storage');
+        console.log('Tasks saved to localStorage');
     } catch (error) {
-        console.error('Error saving tasks to local storage:', error);
-        alert('Could not save Tasks.')
+        console.error('Error saving tasks to localStorage:', error);
+        alert('Could not save tasks.');
     }
 }
 
 /**
- * Loads tasks from local storage
+ * Loads tasks from localStorage
  */
 function loadTasksFromStorage() {
-    try{
+    try {
         const tasksJSON = localStorage.getItem(STORAGE_KEY);
 
         if (tasksJSON) {
             const loadedTasks = JSON.parse(tasksJSON);
            
-            //Validate the loaded data
+            // Validate the loaded data
             if (Array.isArray(loadedTasks)) {
                 tasks = loadedTasks;
 
-                //update nextTaskId to avoid conflicts
-                if(tasks.length > 0) {
+                // Update nextTaskId to avoid conflicts
+                if (tasks.length > 0) {
                     const maxId = Math.max(...tasks.map(task => task.id));
                     nextTaskId = maxId + 1;
                 }
-                console.log('Loaded ${loadedTasks.length} tasks from local storage');
+                
+                console.log(`Loaded ${loadedTasks.length} tasks from localStorage`);
                 return true;
             }
         }
+        
         console.log('No saved tasks found');
         return false;
+        
     } catch (error) {
         console.error('Failed to load tasks:', error);
         localStorage.removeItem(STORAGE_KEY);
@@ -330,15 +307,37 @@ function loadTasksFromStorage() {
 /**
  * Clears all saved tasks from localStorage
  */
-
 function clearStoredTasks() {
-    try{
+    try {
         localStorage.removeItem(STORAGE_KEY);
-        console.log('All tasks cleared from local storage');
+        console.log('All tasks cleared from localStorage');
     } catch (error) {
         console.error('Failed to clear storage:', error);
     }
 }
+
+/**
+ * Initializes the application
+ */
+function initializeApp() {
+    console.log('Weekly Planner initialized');
+
+    // Load saved tasks before setting up the UI
+    const hasStoredTasks = loadTasksFromStorage();
+    
+    initializeEventListeners();
+
+    // Display loaded tasks or start fresh
+    if (hasStoredTasks) {
+        displayAllTasks();
+    } else {
+        updateStatistics();
+        updateAllDayTaskCounts();
+    }
+}
+
+// Start the application when DOM is ready
+document.addEventListener('DOMContentLoaded', initializeApp);
 
 // Utility functions for development/testing
 function showAllTasks() {
@@ -361,4 +360,5 @@ function addSampleTasks() {
     
     updateStatistics();
     updateAllDayTaskCounts();
+    saveTasksToStorage();
 }
