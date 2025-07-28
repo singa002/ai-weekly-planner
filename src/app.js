@@ -53,7 +53,10 @@ function addTask() {
     displayTask(newTask);
     updateStatistics();
     clearForm();
-    
+
+    //Auto save after adding a task
+    saveTaskstoStorage();
+
     console.log('Task added:', newTask);
 }
 
@@ -139,6 +142,9 @@ function toggleTaskCompletion(taskId) {
     }
     
     updateStatistics();
+
+    //Auto save after toggling a task
+    saveTaskstoStorage();
 }
 
 /**
@@ -166,6 +172,9 @@ function deleteTask(taskId) {
     
     updateStatistics();
     updateDayTaskCount(taskDay);
+
+    //Auto save after deleting a task
+    saveTaskstoStorage();
 }
 
 /**
@@ -247,14 +256,89 @@ function initializeEventListeners() {
  */
 function initializeApp() {
     console.log('Weekly Planner initialized');
+
+    //Load saved tasks before setting up the UI
+    const hasStoredTasks = loadTasksFromStorage();
     
     initializeEventListeners();
-    updateStatistics();
-    updateAllDayTaskCounts();
+
+    //Display loaded tasks or start fresh
+    if (hasStoredTasks) {
+        displayAllTasks();
+    } else {
+        updateStatistics();
+        updateAllDayTaskCounts();
+    }
+
+    
+    
 }
 
 // Start the application when DOM is ready
 document.addEventListener('DOMContentLoaded', initializeApp);
+
+//storage key for local storage
+const STORAGE_KEY = 'weeklyPlannerTasks'
+
+/**
+ * Saves tasks to local storage
+ */
+function saveTaskstoStorage() {
+    try{
+        const tasksJSON = JSON.stringify(tasks);
+        localStorage.setItem(STORAGE_KEY, tasksJSON);
+        console.log('Tasks saved to local storage');
+    } catch (error) {
+        console.error('Error saving tasks to local storage:', error);
+        alert('Could not save Tasks.')
+    }
+}
+
+/**
+ * Loads tasks from local storage
+ */
+function loadTasksFromStorage() {
+    try{
+        const tasksJSON = localStorage.getItem(STORAGE_KEY);
+
+        if (tasksJSON) {
+            const loadedTasks = JSON.parse(tasksJSON);
+           
+            //Validate the loaded data
+            if (Array.isArray(loadedTasks)) {
+                tasks = loadedTasks;
+
+                //update nextTaskId to avoid conflicts
+                if(tasks.length > 0) {
+                    const maxId = Math.max(...tasks.map(task => task.id));
+                    nextTaskId = maxId + 1;
+                }
+                console.log('Loaded ${loadedTasks.length} tasks from local storage');
+                return true;
+            }
+        }
+        console.log('No saved tasks found');
+        return false;
+    } catch (error) {
+        console.error('Failed to load tasks:', error);
+        localStorage.removeItem(STORAGE_KEY);
+        alert('Saved data is corrupted. Resetting tasks.');
+        return false;
+    }
+}
+
+/**
+ * Clears all saved tasks from localStorage
+ */
+
+function clearStoredTasks() {
+    try{
+        localStorage.removeItem(STORAGE_KEY);
+        console.log('All tasks cleared from local storage');
+    } catch (error) {
+        console.error('Failed to clear storage:', error);
+    }
+}
 
 // Utility functions for development/testing
 function showAllTasks() {
