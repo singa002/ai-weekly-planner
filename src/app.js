@@ -145,6 +145,30 @@ function updateDayHeaders() {
 }
 
 /**
+ * Filters and displays tasks for the current week
+ */
+function filterTasksForCurrentWeek() {
+    const weekDates = getWeekDates(currentWeekStart);
+    const weekStart = formatDateStorage(weekDates[0]);
+    const weekEnd = formatDateStorage(weekDates[6]);
+    
+    // Clear current display
+    const taskLists = document.querySelectorAll('.task-list');
+    taskLists.forEach(list => {
+        list.innerHTML = '';
+    });
+    
+    // Show tasks for current week
+    tasks.forEach(task => {
+        // For now, show all tasks (we'll enhance this when we add dates to tasks)
+        displayTask(task);
+    });
+    
+    updateStatistics();
+    updateAllDayTaskCounts();
+}
+
+/**
  * Creates a new task objectc
  */
 function createTask(title, day, priority) {
@@ -381,7 +405,22 @@ function initializeEventListeners() {
     
     taskTitleInput.addEventListener('input', validateForm);
     taskDaySelect.addEventListener('change', validateForm);
+    //Week navigation listeners
+    const prevWeekBtn = document.getElementById('prev-week-btn');
+    const nextWeekBtn = document.getElementById('next-week-btn');
+    const currentWeekBtn = document.getElementById('current-week-btn');
     
+    if (prevWeekBtn) {
+        prevWeekBtn.addEventListener('click', goToPreviousWeek);
+    }
+    
+    if (nextWeekBtn) {
+        nextWeekBtn.addEventListener('click', goToNextWeek);
+    }
+    
+    if (currentWeekBtn) {
+        currentWeekBtn.addEventListener('click', goToCurrentWeek);
+    }
     validateForm();
 }
 
@@ -452,6 +491,9 @@ function clearStoredTasks() {
  */
 function initializeApp() {
     console.log('Weekly Planner initialized');
+
+    // Initialize current week
+    setCurrentWeek(getMondayOfWeek());
 
     // Load saved tasks before setting up the UI
     const hasStoredTasks = loadTasksFromStorage();
