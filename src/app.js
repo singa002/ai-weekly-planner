@@ -13,8 +13,109 @@ const addTaskButton = document.getElementById('add-task');
 const totalTasksSpan = document.getElementById('total-tasks');
 const completedTasksSpan = document.getElementById('completed-tasks');
 
+
+// Date management
+let currentWeekStart = null;
+
 /**
- * Creates a new task object
+ * Gets the Monday of the current week
+ */
+function getMondayOfWeek(date = new Date()) {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    d.setDate(diff);
+    d.setHours(0, 0, 0, 0);
+    return d;
+}
+
+/**
+ * Gets array of 7 dates starting from Monday
+ */
+function getWeekDates(mondayDate) {
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+        const date = new Date(mondayDate);
+        date.setDate(mondayDate.getDate() + i);
+        dates.push(date);
+    }
+    return dates;
+}
+
+/**
+ * Formats date for display (Mon, Jul 28)
+ */
+function formatDateDisplay(date) {
+    const options = { 
+        weekday: 'short', 
+        month: 'short', 
+        day: 'numeric' 
+    };
+    return date.toLocaleDateString('en-US', options);
+}
+
+/**
+ * Formats date for storage (2025-07-28)
+ */
+function formatDateStorage(date) {
+    return date.toISOString().split('T')[0];
+}
+
+/**
+ * Gets week range display (July 28 - August 3, 2025)
+ */
+function getWeekRangeDisplay(mondayDate) {
+    const sunday = new Date(mondayDate);
+    sunday.setDate(mondayDate.getDate() + 6);
+    
+    const startMonth = mondayDate.toLocaleDateString('en-US', { month: 'long' });
+    const endMonth = sunday.toLocaleDateString('en-US', { month: 'long' });
+    const year = mondayDate.getFullYear();
+    
+    if (startMonth === endMonth) {
+        return `${startMonth} ${mondayDate.getDate()}-${sunday.getDate()}, ${year}`;
+    } else {
+        return `${startMonth} ${mondayDate.getDate()} - ${endMonth} ${sunday.getDate()}, ${year}`;
+    }
+}
+
+/**
+ * Navigate to previous week
+ */
+function goToPreviousWeek() {
+    const newWeekStart = new Date(currentWeekStart);
+    newWeekStart.setDate(currentWeekStart.getDate() - 7);
+    setCurrentWeek(newWeekStart);
+}
+
+/**
+ * Navigate to next week
+ */
+function goToNextWeek() {
+    const newWeekStart = new Date(currentWeekStart);
+    newWeekStart.setDate(currentWeekStart.getDate() + 7);
+    setCurrentWeek(newWeekStart);
+}
+
+/**
+ * Navigate to current week (today)
+ */
+function goToCurrentWeek() {
+    setCurrentWeek(getMondayOfWeek());
+}
+
+/**
+ * Sets the current week and updates display
+ */
+function setCurrentWeek(mondayDate) {
+    currentWeekStart = mondayDate;
+    updateWeekDisplay();
+    updateDayHeaders();
+    filterTasksForCurrentWeek();
+}
+
+/**
+ * Creates a new task objectc
  */
 function createTask(title, day, priority) {
     return {
