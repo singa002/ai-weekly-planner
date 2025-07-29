@@ -115,6 +115,36 @@ function setCurrentWeek(mondayDate) {
 }
 
 /**
+ * Updates the week range display in header
+ */
+function updateWeekDisplay() {
+    const weekRangeElement = document.getElementById('week-range');
+    if (weekRangeElement) {
+        weekRangeElement.textContent = getWeekRangeDisplay(currentWeekStart);
+    }
+}
+
+/**
+ * Updates day headers with actual dates
+ */
+function updateDayHeaders() {
+    const weekDates = getWeekDates(currentWeekStart);
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    
+    days.forEach((day, index) => {
+        const dayColumn = document.querySelector(`[data-day="${day}"]`);
+        if (dayColumn) {
+            const dayHeader = dayColumn.querySelector('h3');
+            if (dayHeader) {
+                const dayName = day.charAt(0).toUpperCase() + day.slice(1);
+                const dateDisplay = formatDateDisplay(weekDates[index]);
+                dayHeader.textContent = dateDisplay;
+            }
+        }
+    });
+}
+
+/**
  * Creates a new task objectc
  */
 function createTask(title, day, priority) {
