@@ -44,6 +44,81 @@ body {
     font-weight: 400;
 }
 
+/* Week navigation */
+.week-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding: 16px 20px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.nav-btn {
+    padding: 10px 16px;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.nav-btn:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    background: #f0f7ff;
+}
+
+.week-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+#week-range {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.current-week-btn {
+    padding: 6px 12px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.current-week-btn:hover {
+    background: #1d4ed8;
+}
+
+/* Responsive navigation */
+@media (max-width: 768px) {
+    .week-navigation {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .nav-btn {
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    #week-range {
+        font-size: 16px;
+    }
+}
 /* Task input section */
 .input-section {
     margin-bottom: 40px;
