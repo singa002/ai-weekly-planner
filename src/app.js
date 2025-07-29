@@ -158,10 +158,16 @@ function filterTasksForCurrentWeek() {
         list.innerHTML = '';
     });
     
-    // Show tasks for current week
+    // Show only tasks that belong to current week
     tasks.forEach(task => {
-        // For now, show all tasks (we'll enhance this when we add dates to tasks)
-        displayTask(task);
+        // Check if task has a date and falls within current week
+        if (task.date && task.date >= weekStart && task.date <= weekEnd) {
+            displayTask(task);
+        }
+        // For old tasks without dates, show them (backward compatibility)
+        else if (!task.date) {
+            displayTask(task);
+        }
     });
     
     updateStatistics();
@@ -169,13 +175,20 @@ function filterTasksForCurrentWeek() {
 }
 
 /**
- * Creates a new task objectc
+ * Creates a new task object with specific date
  */
 function createTask(title, day, priority) {
+    // Get the specific date for this day in the current week
+    const weekDates = getWeekDates(currentWeekStart);
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const dayIndex = days.indexOf(day);
+    const taskDate = weekDates[dayIndex];
+    
     return {
         id: nextTaskId++,
         title: title.trim(),
         day: day,
+        date: formatDateStorage(taskDate), 
         priority: priority,
         completed: false,
         createdAt: new Date().toISOString().split('T')[0]
@@ -339,8 +352,17 @@ function deleteTask(taskId) {
  * Updates total and completed task statistics
  */
 function updateStatistics() {
-    const totalTasks = tasks.length;
-    const completedTasks = tasks.filter(task => task.completed).length;
+    const weekDates = getWeekDates(currentWeekStart);
+    const weekStart = formatDateStorage(weekDates[0]);
+    const weekEnd = formatDateStorage(weekDates[6]);
+    
+    // Count tasks in current week only
+    const currentWeekTasks = tasks.filter(task => {
+        return (task.date && task.date >= weekStart && task.date <= weekEnd) || !task.date;
+    });
+    
+    const totalTasks = currentWeekTasks.length;
+    const completedTasks = currentWeekTasks.filter(task => task.completed).length;
     
     totalTasksSpan.textContent = `Total tasks: ${totalTasks}`;
     completedTasksSpan.textContent = `Completed: ${completedTasks}`;
@@ -350,7 +372,16 @@ function updateStatistics() {
  * Updates task count for a specific day
  */
 function updateDayTaskCount(day) {
-    const dayTaskCount = tasks.filter(task => task.day === day).length;
+    const weekDates = getWeekDates(currentWeekStart);
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const dayIndex = days.indexOf(day);
+    const dayDate = formatDateStorage(weekDates[dayIndex]);
+    
+    // Count tasks for this specific day and date
+    const dayTaskCount = tasks.filter(task => {
+        return task.day === day && (task.date === dayDate || !task.date);
+    }).length;
+    
     const dayColumn = document.querySelector(`[data-day="${day}"]`);
     
     if (dayColumn) {
