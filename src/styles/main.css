@@ -440,3 +440,48 @@ body {
         transform: translateY(0); 
     }
 }
+/* Edit mode styling */
+.task-item.editing {
+    background: #fff3cd;
+    border-left-color: #ffc107;
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+    transition: all 0.2s ease;
+}
+
+/* Input field when editing tasks */
+.task-edit-input {
+    background: transparent;
+    border: none;
+    font-size: inherit;
+    font-family: inherit;
+    font-weight: inherit;
+    color: inherit;
+    width: 100%;
+    outline: none;
+    padding: 2px 4px;
+    margin: 0;
+}
+
+/* Focus state for edit input */
+.task-edit-input:focus {
+    background: white;
+    border: 2px solid #3b82f6;
+    border-radius: 4px;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Visual feedback states */
+.task-item.saving {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.task-item.updated {
+    animation: highlightSuccess 0.6s ease;
+}
+
+/* Success animation */
+@keyframes highlightSuccess {
+    0% { background: #d4edda; }
+    100% { background: inherit; }
+}

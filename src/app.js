@@ -235,37 +235,28 @@ function addTask() {
  * Displays a task in the appropriate day column
  */
 function displayTask(task) {
-    const dayColumn = document.getElementById(`${task.day}-tasks`);
-    
-    if (!dayColumn) {
-        console.error(`Could not find day column for: ${task.day}`);
-        return;
-    }
-    
     const taskElement = document.createElement('div');
-    taskElement.className = `task-item priority-${task.priority}`;
-    taskElement.setAttribute('data-task-id', task.id);
-    
-    if (task.completed) {
-        taskElement.classList.add('completed');
-    }
+    taskElement.className = `task-item priority-${task.priority} ${task.completed ? 'completed' : ''}`;
+    taskElement.setAttribute('data-task-id', task.id); // Add this line
     
     taskElement.innerHTML = `
         <div class="task-content">
-            <span class="task-title">${task.title}</span>
+            <span class="task-title" ondblclick="editTask(${task.id})">${task.title}</span>
             <div class="task-actions">
-                <button class="complete-btn" onclick="toggleTaskCompletion(${task.id})">
-                    ${task.completed ? '✓' : '○'}
+                <button class="complete-btn" onclick="toggleTaskCompletion(${task.id})" title="Toggle completion">
+                    ${task.completed ? '↩️' : '✅'}
                 </button>
-                <button class="delete-btn" onclick="deleteTask(${task.id})">
-                    ✕
+                <button class="delete-btn" onclick="deleteTask(${task.id})" title="Delete task">
+                    🗑️
                 </button>
             </div>
         </div>
     `;
     
-    dayColumn.appendChild(taskElement);
-    updateDayTaskCount(task.day);
+    const dayColumn = document.getElementById(`${task.day}-tasks`);
+    if (dayColumn) {
+        dayColumn.appendChild(taskElement);
+    }
 }
 
 /**
@@ -565,4 +556,119 @@ function addSampleTasks() {
     updateStatistics();
     updateAllDayTaskCounts();
     saveTasksToStorage();
+}
+
+// Enter edit mode for a task
+function editTask(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+    
+    if (!task || !taskElement) return;
+    
+    if (taskElement.classList.contains('editing')) {
+        return;
+    }
+    
+    const titleElement = taskElement.querySelector('.task-title');
+    if (!titleElement) return;
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'task-edit-input';
+    input.value = task.title;
+    input.maxLength = 100;
+    
+    taskElement.classList.add('editing');
+    titleElement.parentNode.replaceChild(input, titleElement);
+    
+    input.focus();
+    input.select();
+    
+    setupEditEventListeners(taskId, input, task.title);
+}
+
+// Set up keyboard and mouse events for editing
+function setupEditEventListeners(taskId, input, originalTitle) {
+    const handleKeydown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            saveTaskEdit(taskId, input.value.trim());
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            cancelTaskEdit(taskId, originalTitle);
+        }
+    };
+    
+    const handleBlur = () => {
+        setTimeout(() => {
+            saveTaskEdit(taskId, input.value.trim());
+        }, 100);
+    };
+    
+    input.addEventListener('keydown', handleKeydown);
+    input.addEventListener('blur', handleBlur);
+    
+    input._editListeners = { handleKeydown, handleBlur };
+}
+
+// Save edited task
+function saveTaskEdit(taskId, newTitle) {
+    if (!newTitle || newTitle.length === 0) {
+        alert('Task title cannot be empty');
+        return;
+    }
+    
+    if (newTitle.length > 100) {
+        alert('Task title cannot exceed 100 characters');
+        return;
+    }
+    
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+        const oldTitle = task.title;
+        task.title = newTitle;
+        
+        const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+        if (taskElement) {
+            taskElement.classList.add('saving');
+        }
+        
+        try {
+            saveTasksToStorage();
+            
+            if (taskElement) {
+                taskElement.classList.remove('saving');
+                taskElement.classList.add('updated');
+                setTimeout(() => {
+                    taskElement.classList.remove('updated');
+                }, 600);
+            }
+        } catch (error) {
+            task.title = oldTitle;
+            alert('Failed to save changes. Please try again.');
+        }
+    }
+    
+    exitEditMode(taskId);
+    displayAllTasks();
+}
+
+// Cancel editing and revert changes
+function cancelTaskEdit(taskId, originalTitle) {
+    exitEditMode(taskId);
+    displayAllTasks();
+}
+
+// Clean up edit mode
+function exitEditMode(taskId) {
+    const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+    if (taskElement) {
+        taskElement.classList.remove('editing', 'saving');
+        
+        const input = taskElement.querySelector('.task-edit-input');
+        if (input && input._editListeners) {
+            input.removeEventListener('keydown', input._editListeners.handleKeydown);
+            input.removeEventListener('blur', input._editListeners.handleBlur);
+        }
+    }
 }
