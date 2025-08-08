@@ -570,3 +570,416 @@ function addSampleTasks() {
 
 // Start the application
 document.addEventListener('DOMContentLoaded', initializeApp);
+
+class KeyboardManager {
+    constructor() {
+        this.shortcuts = new Map();
+        this.initializeKeyboardListeners();
+    }
+
+    initializeKeyboardListeners() {
+        document.addEventListener('keydown', (e) => this.handleKeyDown(e));
+        document.addEventListener('keyup', (e) => this.handleKeyUp(e));
+    }
+
+    registerShortcut(key, modifiers, callback, description) {
+        const shortcutKey = this.createShortcutKey(key, modifiers);
+        this.shortcuts.set(shortcutKey, { callback, description });
+    }
+
+    createShortcutKey(key, modifiers = {}) {
+        const parts = [];
+        if (modifiers.ctrl) parts.push('ctrl');
+        if (modifiers.alt) parts.push('alt');
+        if (modifiers.shift) parts.push('shift');
+        parts.push(key.toLowerCase());
+        return parts.join('+');
+    }
+
+    handleKeyDown(e) {
+        if (this.isEditingTask(e.target)) {
+            this.handleEditingKeyDown(e);
+            return;
+        }
+
+        const modifiers = {
+            ctrl: e.ctrlKey || e.metaKey,
+            alt: e.altKey,
+            shift: e.shiftKey
+        };
+
+        const shortcutKey = this.createShortcutKey(e.key, modifiers);
+        const shortcut = this.shortcuts.get(shortcutKey);
+
+        if (shortcut) {
+            e.preventDefault();
+            shortcut.callback(e);
+        }
+    }
+
+    handleEditingKeyDown(e) {
+        switch(e.key) {
+            case 'Enter':
+                if (e.target.classList.contains('task-edit-input')) {
+                    e.preventDefault();
+                    e.target.blur();
+                }
+                break;
+            case 'Escape':
+                if (e.target.classList.contains('task-edit-input')) {
+                    this.cancelEdit(e.target);
+                }
+                break;
+        }
+    }
+
+    handleKeyUp(e) {
+        this.showKeyboardHint(e);
+    }
+
+    isEditingTask(element) {
+        return element.classList.contains('task-edit-input') || 
+               element.closest('.task-item.editing');
+    }
+
+    cancelEdit(input) {
+        const taskItem = input.closest('.task-item');
+        if (taskItem) {
+            window.taskManager.displayAllTasks();
+        }
+    }
+
+    showKeyboardHint(e) {
+        if (e.key === 'Control' || e.key === 'Meta') {
+            this.displayShortcutHints();
+        }
+    }
+
+    displayShortcutHints() {
+        const existingHints = document.querySelector('.keyboard-hints');
+        if (existingHints) return;
+
+        const hintsContainer = document.createElement('div');
+        hintsContainer.className = 'keyboard-hints';
+        hintsContainer.innerHTML = `
+            <div class="hints-content">
+                <h4>Keyboard Shortcuts</h4>
+                <div class="hint-item">
+                    <kbd>Ctrl</kbd> + <kbd>Enter</kbd> - Quick add task
+                </div>
+                <div class="hint-item">
+                    <kbd>Ctrl</kbd> + <kbd>←</kbd> - Previous week
+                </div>
+                <div class="hint-item">
+                    <kbd>Ctrl</kbd> + <kbd>→</kbd> - Next week
+                </div>
+                <div class="hint-item">
+                    <kbd>Enter</kbd> - Save edit
+                </div>
+                <div class="hint-item">
+                    <kbd>Esc</kbd> - Cancel edit
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(hintsContainer);
+
+        setTimeout(() => {
+            hintsContainer.remove();
+        }, 3000);
+    }
+}
+
+class FormValidator {
+    constructor() {
+        this.validationRules = new Map();
+        this.setupValidation();
+    }
+
+    setupValidation() {
+        const taskInput = document.getElementById('task-title');
+        const taskDay = document.getElementById('task-day');
+
+        if (taskInput) {
+            this.addRealTimeValidation(taskInput);
+        }
+        if (taskDay) {
+            this.addRealTimeValidation(taskDay);
+        }
+    }
+
+    addRealTimeValidation(element) {
+        element.addEventListener('input', () => this.validateField(element));
+        element.addEventListener('blur', () => this.validateField(element));
+        element.addEventListener('focus', () => this.clearFieldError(element));
+    }
+
+    validateField(element) {
+        this.clearFieldError(element);
+
+        const value = element.value.trim();
+        let isValid = true;
+        let errorMessage = '';
+
+        switch(element.id) {
+            case 'task-title':
+                if (!value) {
+                    isValid = false;
+                    errorMessage = 'Task title is required';
+                } else if (value.length > 100) {
+                    isValid = false;
+                    errorMessage = 'Task title must be 100 characters or less';
+                } else if (value.length < 3) {
+                    isValid = false;
+                    errorMessage = 'Task title must be at least 3 characters';
+                }
+                break;
+
+            case 'task-day':
+                if (!value) {
+                    isValid = false;
+                    errorMessage = 'Please select a day';
+                }
+                break;
+        }
+
+        if (!isValid) {
+            this.showFieldError(element, errorMessage);
+        } else {
+            this.showFieldSuccess(element);
+        }
+
+        return isValid;
+    }
+
+    showFieldError(element, message) {
+        element.classList.add('field-error');
+        element.classList.remove('field-success');
+
+        let errorElement = element.parentNode.querySelector('.field-error-message');
+        if (!errorElement) {
+            errorElement = document.createElement('div');
+            errorElement.className = 'field-error-message';
+            element.parentNode.appendChild(errorElement);
+        }
+        errorElement.textContent = message;
+    }
+
+    showFieldSuccess(element) {
+        element.classList.remove('field-error');
+        element.classList.add('field-success');
+        this.clearFieldError(element);
+    }
+
+    clearFieldError(element) {
+        element.classList.remove('field-error');
+        const errorElement = element.parentNode.querySelector('.field-error-message');
+        if (errorElement) {
+            errorElement.remove();
+        }
+    }
+
+    validateForm() {
+        const taskInput = document.getElementById('task-title');
+        const taskDay = document.getElementById('task-day');
+
+        const titleValid = this.validateField(taskInput);
+        const dayValid = this.validateField(taskDay);
+
+        return titleValid && dayValid;
+    }
+}
+
+class LoadingManager {
+    constructor() {
+        this.activeOperations = new Set();
+    }
+
+    showLoading(operationId, element, message = 'Processing...') {
+        if (this.activeOperations.has(operationId)) return;
+
+        this.activeOperations.add(operationId);
+        element.classList.add('loading');
+
+        const loadingIndicator = document.createElement('div');
+        loadingIndicator.className = 'loading-indicator';
+        loadingIndicator.innerHTML = `
+            <div class="loading-spinner"></div>
+            <span class="loading-text">${message}</span>
+        `;
+        loadingIndicator.dataset.operationId = operationId;
+
+        element.appendChild(loadingIndicator);
+
+        element.style.pointerEvents = 'none';
+    }
+
+    hideLoading(operationId, element) {
+        if (!this.activeOperations.has(operationId)) return;
+
+        this.activeOperations.delete(operationId);
+        element.classList.remove('loading');
+
+        const loadingIndicator = element.querySelector(`[data-operation-id="${operationId}"]`);
+        if (loadingIndicator) {
+            loadingIndicator.remove();
+        }
+
+        element.style.pointerEvents = '';
+    }
+
+    simulateAsyncOperation(operationId, element, callback, delay = 300) {
+        this.showLoading(operationId, element);
+
+        setTimeout(() => {
+            callback();
+            this.hideLoading(operationId, element);
+        }, delay);
+    }
+}
+
+class NotificationManager {
+    constructor() {
+        this.notifications = [];
+        this.createNotificationContainer();
+    }
+
+    createNotificationContainer() {
+        const container = document.createElement('div');
+        container.id = 'notification-container';
+        container.className = 'notification-container';
+        document.body.appendChild(container);
+    }
+
+    show(message, type = 'info', duration = 3000) {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        
+        notification.innerHTML = `
+            <div class="notification-content">
+                <span class="notification-icon">${this.getIcon(type)}</span>
+                <span class="notification-message">${message}</span>
+                <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
+            </div>
+        `;
+
+        const container = document.getElementById('notification-container');
+        container.appendChild(notification);
+
+        setTimeout(() => {
+            notification.classList.add('notification-show');
+        }, 10);
+
+        if (duration > 0) {
+            setTimeout(() => {
+                this.hide(notification);
+            }, duration);
+        }
+
+        return notification;
+    }
+
+    hide(notification) {
+        notification.classList.add('notification-hide');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 300);
+    }
+
+    getIcon(type) {
+        const icons = {
+            'success': '✓',
+            'error': '✕',
+            'warning': '⚠',
+            'info': 'ℹ'
+        };
+        return icons[type] || icons.info;
+    }
+
+    success(message, duration) {
+        return this.show(message, 'success', duration);
+    }
+
+    error(message, duration) {
+        return this.show(message, 'error', duration);
+    }
+
+    warning(message, duration) {
+        return this.show(message, 'warning', duration);
+    }
+
+    info(message, duration) {
+        return this.show(message, 'info', duration);
+    }
+}
+
+const keyboardManager = new KeyboardManager();
+const formValidator = new FormValidator();
+const loadingManager = new LoadingManager();
+const notificationManager = new NotificationManager();
+
+keyboardManager.registerShortcut('enter', { ctrl: true }, () => {
+    const taskInput = document.getElementById('task-title');
+    if (taskInput && !taskInput.closest('.task-item.editing')) {
+        taskInput.focus();
+        taskInput.select();
+    }
+}, 'Quick add task');
+
+keyboardManager.registerShortcut('arrowleft', { ctrl: true }, () => {
+    window.weekNavigation.goToPreviousWeek();
+    notificationManager.info('Previous week', 1500);
+}, 'Previous week');
+
+keyboardManager.registerShortcut('arrowright', { ctrl: true }, () => {
+    window.weekNavigation.goToNextWeek();
+    notificationManager.info('Next week', 1500);
+}, 'Next week');
+
+keyboardManager.registerShortcut('t', { ctrl: true }, () => {
+    window.weekNavigation.goToCurrentWeek();
+    notificationManager.info('Current week', 1500);
+}, 'Go to today');
+
+const originalAddTask = window.taskManager.addTask;
+window.taskManager.addTask = function() {
+    if (!formValidator.validateForm()) {
+        notificationManager.error('Please check the form for errors');
+        return;
+    }
+
+    const addButton = document.getElementById('add-task');
+    loadingManager.simulateAsyncOperation('add-task', addButton, () => {
+        originalAddTask.call(this);
+        notificationManager.success('Task added successfully!');
+        
+        const taskInput = document.getElementById('task-title');
+        taskInput.value = '';
+        taskInput.focus();
+    });
+};
+
+const originalDeleteTask = window.taskManager.deleteTask;
+window.taskManager.deleteTask = function(taskId) {
+    const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+    if (taskElement) {
+        loadingManager.simulateAsyncOperation('delete-task', taskElement, () => {
+            originalDeleteTask.call(this, taskId);
+            notificationManager.success('Task deleted');
+        }, 200);
+    }
+};
+
+const originalToggleTaskCompletion = window.taskManager.toggleTaskCompletion;
+window.taskManager.toggleTaskCompletion = function(taskId) {
+    const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+    if (taskElement) {
+        const task = this.tasks.find(t => t.id === taskId);
+        const message = task.completed ? 'Task marked incomplete' : 'Task completed!';
+        
+        originalToggleTaskCompletion.call(this, taskId);
+        notificationManager.success(message, 2000);
+    }
+};
